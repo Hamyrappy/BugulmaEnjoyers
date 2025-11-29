@@ -30,12 +30,8 @@ jobs:
       - name: Install dependencies
         run: pixi install
 
-      - name: Run tests with pytest
-        run: pixi run test
-
-      - name: Generate coverage report
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
-        run: pixi run pytest tests/ --cov=. --cov-report=xml --cov-report=html
+      - name: Run tests with pytest+cov
+        run: pixi run test-cov
 
       - name: Upload coverage to Codecov
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
