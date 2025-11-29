@@ -8,7 +8,7 @@ authors = [
     { name = "VitaliyEgorov431" },
     { name = "ann-vasileeva" },
 ]
-dependencies = ["pytest>=9.0.1,<10", "pytest-cov>=7.0.0,<8", "huggingface-hub>=0.36.0,<0.37", "transformers>=4.57.3,<5", "langchain>=1.1.0,<2"]
+dependencies = ["pytest>=9.0.1,<10", "pytest-cov>=7.0.0,<8", "huggingface-hub>=0.36.0,<0.37", "transformers>=4.57.3,<5", "langchain", "google>=3.0.0,<4"]
 
 [tool.pixi.workspace]
 channels = ["conda-forge"]
@@ -17,6 +17,7 @@ platforms = ["win-64", "linux-64", "osx-arm64"]
 [tool.pixi.dependencies]
 python = "==3.12"
 ruff = "*"
+langchain = "*"
 
 [tool.pixi.target.linux-64.dependencies]
 cuda = "==12.4"
@@ -37,6 +38,8 @@ torch = { version = "==2.6.0", index = "https://download.pytorch.org/whl/cpu" }
 lint = { cmd = "ruff check ." }
 lintfix = { cmd = "ruff check --fix ." }
 format = { cmd = "ruff format ." }
+test = { cmd = "pytest --cov=." }
+test-cov = { cmd = "pytest --cov=. --cov-report=xml --cov-report=html"}
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = [
@@ -85,7 +88,7 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["ALL"]
-ignore = ["BLE", "D401", "FBT001", "TD003"]
+ignore = ["BLE", "D401", "FBT001", "TD003", "D212", "D203"]
 extend-safe-fixes = ["D400", "ANN2"]
 fixable = ["ALL"]
 
