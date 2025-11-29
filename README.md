@@ -25,6 +25,7 @@ powershell -ExecutionPolicy Bypass -c "irm -useb https://pixi.sh/install.ps1 | i
 ```
 
 ### Затем установите зависимости
+
 ```bash
 pixi install
 ```
