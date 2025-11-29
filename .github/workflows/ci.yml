@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.12"]
 
     steps:
       - name: Checkout code
@@ -23,7 +23,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install pixi
-        uses: prefix-dev/setup-pixi@v0.10.0
+        uses: prefix-dev/setup-pixi@v0.9.3
         with:
           pixi-version: "latest"
 
@@ -58,7 +58,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install pixi
-        uses: prefix-dev/setup-pixi@v0.10.0
+        uses: prefix-dev/setup-pixi@v0.9.3
         with:
           pixi-version: "latest"
 
