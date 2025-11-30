@@ -14,6 +14,8 @@ from bugulma_enjoyers.setup_logging import setup_logging
 @click.option("--output", "-o", help="File to write.", default="dev_outputs.tsv")
 @click.option("--batch-size-1", help="Batch size for first detoxifier.", default=8)
 @click.option("--batch-size-2", help="Batch size for second detoxifier.", default=8)
+@click.option("--detoxifier-1", help="First detoxifier model name.", default=None)
+@click.option("--detoxifier-2", help="Second detoxifier model name.", default=None)
 @click.command()
 def main(
     file: str = "dev_inputs.tsv",
@@ -22,15 +24,18 @@ def main(
     quiet: int = 0,
     batch_size_1: int = 8,
     batch_size_2: int = 8,
+    detoxifier_1: str = "hf/s-nlp/mt0-xl-detox-orpo",
+    detoxifier_2: str = "google/models/gemini-2.5-pro",
 ) -> None:
     """Main entrypoint for BugulmaEnjoyers."""
     verbosity = verbose - quiet + 1
     setup_logging(verbosity)
     texts = read_input(file)
-    config = PipelineConfig(batch_size=batch_size_1)
+    config = PipelineConfig(detoxifier_model_name=detoxifier_1, batch_size=batch_size_1)
     detox = StandaloneDetoxifier(config)
     config2 = PipelineConfig(
-        detoxifier_model_name="google/models/gemini-2.5-pro", batch_size=batch_size_2,
+        detoxifier_model_name=detoxifier_2,
+        batch_size=batch_size_2,
     )
     detox2 = StandaloneDetoxifier(config2)
     results = detox2.detoxify_batch(
