@@ -20,12 +20,16 @@ def main(
     quiet: int = 0,
 ) -> None:
     """Main entrypoint for BugulmaEnjoyers."""
-    verbosity = verbose - quiet +1
+    verbosity = verbose - quiet + 1
     setup_logging(verbosity)
     texts = read_input(file)
     config = PipelineConfig()
     detox = StandaloneDetoxifier(config)
-    results = detox.detoxify_batch(texts, ["tt"] * len(texts))
+    config2 = PipelineConfig(detoxifier_model_name="google/models/gemini-2.5-pro")
+    detox2 = StandaloneDetoxifier(config2)
+    results = detox2.detoxify_batch(
+        detox.detoxify_batch(texts, ["tt"] * len(texts)), ["tt"] * len(texts),
+    )
     write_output(results, texts, output)
 
 
