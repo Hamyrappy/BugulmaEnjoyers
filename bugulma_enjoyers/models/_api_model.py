@@ -133,7 +133,12 @@ class APIModel(BaseModel, model_type="api"):
             for item in predictions:
                 try:
                     idx = item["ID"]
-                    detoxified_text = item["tat_detox1"]
+                    if "tat_detox1" in item:
+                        detoxified_text = item["tat_detox1"]
+                    elif "detoxified_text" in item:
+                        detoxified_text = item["detoxified_text"]
+                    else:
+                        detoxified_text = item["text"]
                     res[idx] = detoxified_text
                 except KeyError:
                     logger.warning("Missing expected keys in model output item: %s", item)
