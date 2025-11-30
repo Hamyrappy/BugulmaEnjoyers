@@ -33,7 +33,7 @@ pixi install
 ## Run
 
 ```python
-pixi run python main.py -vv -f test_inputs.tsv -o test_outputs.tsv
+pixi run python main.py -vv -f test_inputs.tsv -o test_outputs.tsv --batch-size-1 20 --batch-size-2 40
 ```
 
 Результаты будут в `test_outputs.tsv`
