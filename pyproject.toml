@@ -21,7 +21,7 @@ dependencies = [
     "ipywidgets>=8.1.8,<9",
     "huggingface-hub[hf-xet]>=0.36.0,<0.37",
     "google-generativeai>=0.8.5,<0.9",
-    "dotenv>=0.9.9,<0.10", "pyarrow<=20.0",
+    "dotenv>=0.9.9,<0.10", "pyarrow<=20.0", "click>=8.3.1,<9",
 ]
 
 [tool.pixi.feature.glibc_old.system-requirements]
