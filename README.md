@@ -10,7 +10,7 @@
 git clone https://github.com/Hamyrappy/BugulmaEnjoyers.git 
 ```
 
-### Поставьте pixi (<https://pixi.sh/dev/installation/>)
+### Поставьте pixi ([https://pixi.sh/dev/installation/](https://pixi.sh/dev/installation/))
 
 Linux/MacOS:
 
@@ -31,7 +31,9 @@ pixi install
 ```
 
 ## Run
+
 ```python
-pixi run python main.py -vv -f test_input.tsv -o test_output.tsv
+pixi run python main.py -vv -f test_inputs.tsv -o test_outputs.tsv
 ```
-Результаты будут в `test_output.tsv`
+
+Результаты будут в `test_outputs.tsv`
