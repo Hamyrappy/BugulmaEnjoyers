@@ -8,7 +8,7 @@ authors = [
     { name = "VitaliyEgorov431" },
     { name = "ann-vasileeva" },
 ]
-dependencies = ["pytest>=9.0.1,<10", "pytest-cov>=7.0.0,<8", "huggingface-hub>=0.36.0,<0.37", "transformers>=4.57.3,<5", "langchain", "google>=3.0.0,<4"]
+dependencies = ["pytest>=9.0.1,<10", "pytest-cov>=7.0.0,<8", "huggingface-hub>=0.36.0,<0.37", "transformers>=4.57.3,<5", "langchain", "google>=3.0.0,<4", "datasets>=4.4.1,<5"]
 
 [tool.pixi.workspace]
 channels = ["conda-forge"]
