@@ -1,8 +1,13 @@
+import json
+import logging
+import re
 from typing import Any, Never
 
 import torch
 
 from bugulma_enjoyers.models._base import BaseModel
+
+logger = logging.getLogger(__name__)
 
 
 class DummyTokenizer:
@@ -101,7 +106,53 @@ class APIModel(BaseModel, model_type="api"):
         raise NotImplementedError
 
     def forward(self, batch: dict) -> list[str]:
-        return [self.invoke_model(text) for text in batch["prompted_text"]]
+        prompt = batch["prompted_text"]
+        try:
+            text_response = self.invoke_model(prompt)
+            # Логика извлечения JSON (чуть упрощена для надежности)
+            if "```" in text_response:
+                # Пытаемся найти блок кода, если он есть
+                match = re.search(r"```(?:json)?(.*?)```", text_response, re.DOTALL)
+                if match:
+                    text_response = match.group(1)
+
+            json_str = self.clean_json_response(text_response)
+
+            # Парсим JSON
+            predictions = json.loads(json_str)
+
+            # Если модель вернула объект с ключом (например {"result": [...]}), извлекаем список
+            if isinstance(predictions, dict):
+                # Ищем любой ключ, который содержит список
+                for value in predictions.values():
+                    if isinstance(value, list):
+                        predictions = value
+                        break
+
+            res = batch["original_text"].copy()
+            for item in predictions:
+                try:
+                    idx = item["ID"]
+                    detoxified_text = item["tat_detox1"]
+                    res[idx] = detoxified_text
+                except KeyError:
+                    logger.warning("Missing expected keys in model output item: %s", item)
+
+        except Exception:
+            logger.exception("Error parsing model response")
+            # Возвращаем пустой список, чтобы пайплайн не падал,
+            # или можно вернуть оригинальные тексты как 'fail-safe'
+            return batch["original_text"]
+
+        else:
+            return res
 
     def to(self, device: str) -> None:
         """Moves the model to the specified device. Does nothing for API-based models."""
+
+    def clean_json_response(self, response_text) -> str:
+        """Очищает ответ от Markdown-тегов для получения чистого JSON."""
+        cleaned = re.sub(r"^```json\s*", "", response_text, flags=re.MULTILINE)
+        cleaned = re.sub(r"^```\s*", "", cleaned, flags=re.MULTILINE)
+        cleaned = re.sub(r"\s*```$", "", cleaned, flags=re.MULTILINE)
+        return cleaned.strip()
