@@ -5,14 +5,11 @@ from dataclasses import dataclass
 
 import torch
 from torch.utils.data import DataLoader
-from transformers import (
-    AutoModelForSeq2SeqLM,
-    AutoTokenizer,
-)
 
-from bugulma_enjoyers.datasets.collate import collate_fn
+from bugulma_enjoyers.datasets.collate import get_collate_fn
 from bugulma_enjoyers.datasets.detoxification_dataset import DetoxificationDataset
 from bugulma_enjoyers.detoxifiers.base import BaseDetoxifier, PipelineConfig
+from bugulma_enjoyers.load_model import load_model
 
 logger = logging.getLogger(__name__)
 
@@ -34,21 +31,16 @@ class StandaloneDetoxifier(BaseDetoxifier):
         Args:
             config (PipelineConfig): Configuration for the detoxifier
 
-        Notes:
-            - The detoxifier model is loaded from Hugging Face Hub.
-            - The model is set to evaluation mode after loading.
-
         """
         self.config = config
         self.device = torch.device(config.device)
 
-        logger.info("Loading MT0-XL model: %s", config.detoxifier_model_name)
-        self.tokenizer = AutoTokenizer.from_pretrained(config.detoxifier_model_name)
-        self.model = AutoModelForSeq2SeqLM.from_pretrained(
-            config.detoxifier_model_name,
-            torch_dtype=torch.float16 if config.device == "cuda" else torch.float32,
-        ).to(self.device)
-        self.model.eval()
+        logger.info("Loading Model: %s", config.detoxifier_model_name)
+        self.model = load_model(
+            model_name=config.detoxifier_model_name,
+            pipeline_config=config
+        )
+        self.model.to(self.device)
 
     def detoxify(self, text: str, language: str) -> str:
         """
@@ -77,39 +69,20 @@ class StandaloneDetoxifier(BaseDetoxifier):
             List[str]: List of detoxified texts
 
         """
-        results = []
-
         dataset = DetoxificationDataset(
             texts=texts,
             languages=languages,
-            tokenizer=self.tokenizer,
+            tokenizer=self.model.tokenizer,
             max_length=self.config.max_length,
+            use_prompts=True,
         )
 
         dataloader = DataLoader(
             dataset,
             batch_size=self.config.batch_size,
-            collate_fn=collate_fn,
+            collate_fn=get_collate_fn(task="detoxification"),
             shuffle=False,
         )
 
         with torch.inference_mode():
-            for batch in dataloader:
-                input_ids = batch["input_ids"].to(self.device)
-                attention_mask = batch["attention_mask"].to(self.device)
-
-                outputs = self.model.generate(
-                    input_ids=input_ids,
-                    attention_mask=attention_mask,
-                    max_length=self.config.max_length,
-                    num_beams=self.config.num_beams,
-                    do_sample=self.config.do_sample,
-                    temperature=self.config.temperature,
-                    top_p=self.config.top_p,
-                    early_stopping=True,
-                )
-
-                decoded = self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
-                results.extend(decoded)
-
-        return results
+            return [output for batch in dataloader for output in self.model.forward(batch)]

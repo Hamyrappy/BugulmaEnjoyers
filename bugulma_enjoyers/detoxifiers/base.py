@@ -51,9 +51,9 @@ class PipelineConfig:
     """
 
     # Модели
-    detoxifier_model_name: str = "s-nlp/mt0-xl-detox-orpo"
-    translator_model_name: str = "facebook/nllb-200-distilled-600M"
-    toxicity_detector_model_name: str = "textdetox/xlmr-large-toxicity-classifier-v2"
+    detoxifier_model_name: str = "hf/s-nlp/mt0-xl-detox-orpo"
+    translator_model_name: str = "hf/facebook/nllb-200-distilled-600M"
+    toxicity_detector_model_name: str = "hf/textdetox/xlmr-large-toxicity-classifier-v2"
 
     # Inference параметры
     max_length: int = 256
@@ -71,6 +71,7 @@ class PipelineConfig:
     backtranslation_languages: list[str] = field(default_factory=lambda: ["ru"])
 
     pivot_language: str = "en"
+    prompts = None
 
 
 labse_model_name: str = "sentence-transformers/LaBSE"
