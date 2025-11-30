@@ -14,8 +14,12 @@ from bugulma_enjoyers.setup_logging import setup_logging
 @click.option("--output", "-o", help="File to write.", default="dev_outputs.tsv")
 @click.option("--batch-size-1", help="Batch size for first detoxifier.", default=8)
 @click.option("--batch-size-2", help="Batch size for second detoxifier.", default=8)
-@click.option("--detoxifier-1", help="First detoxifier model name.", default=None)
-@click.option("--detoxifier-2", help="Second detoxifier model name.", default=None)
+@click.option(
+    "--detoxifier-1", help="First detoxifier model name.", default="hf/s-nlp/mt0-xl-detox-orpo",
+)
+@click.option(
+    "--detoxifier-2", help="Second detoxifier model name.", default="google/models/gemini-2.5-pro",
+)
 @click.command()
 def main(
     file: str = "dev_inputs.tsv",
