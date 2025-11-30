@@ -5,6 +5,7 @@ from dataclasses import dataclass
 
 import torch
 from torch.utils.data import DataLoader
+from tqdm.auto import tqdm
 
 from bugulma_enjoyers.datasets.collate import get_collate_fn
 from bugulma_enjoyers.datasets.detoxification_dataset import DetoxificationDataset
@@ -36,10 +37,7 @@ class StandaloneDetoxifier(BaseDetoxifier):
         self.device = torch.device(config.device)
 
         logger.info("Loading Model: %s", config.detoxifier_model_name)
-        self.model = load_model(
-            model_name=config.detoxifier_model_name,
-            pipeline_config=config
-        )
+        self.model = load_model(model_name=config.detoxifier_model_name, pipeline_config=config)
         self.model.to(self.device)
 
     def detoxify(self, text: str, language: str) -> str:
@@ -85,4 +83,8 @@ class StandaloneDetoxifier(BaseDetoxifier):
         )
 
         with torch.inference_mode():
-            return [output for batch in dataloader for output in self.model.forward(batch)]
+            return [
+                output
+                for batch in tqdm(dataloader, desc="Detoxifying", unit="batch")
+                for output in self.model.forward(batch)
+            ]

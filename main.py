@@ -25,7 +25,7 @@ def main(
     texts = read_input(file)
     config = PipelineConfig()
     detox = StandaloneDetoxifier(config)
-    config2 = PipelineConfig(detoxifier_model_name="google/models/gemini-2.5-pro")
+    config2 = PipelineConfig(detoxifier_model_name="google/models/gemini-2.5-pro", batch_size=10)
     detox2 = StandaloneDetoxifier(config2)
     results = detox2.detoxify_batch(
         detox.detoxify_batch(texts, ["tt"] * len(texts)),
