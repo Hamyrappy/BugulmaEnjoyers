@@ -25,7 +25,7 @@ def main(
     texts = read_input(file)
     config = PipelineConfig()
     detox = StandaloneDetoxifier(config)
-    results = detox.detoxify_batch(texts)
+    results = detox.detoxify_batch(texts, ["tt"] * len(texts))
     write_output(results, texts, output)
 
 
