@@ -29,3 +29,9 @@ powershell -ExecutionPolicy Bypass -c "irm -useb https://pixi.sh/install.ps1 | i
 ```bash
 pixi install
 ```
+
+## Run
+```python
+pixi run python main.py -vv -f test_input.tsv -o test_output.tsv
+```
+Результаты будут в `test_output.tsv`
