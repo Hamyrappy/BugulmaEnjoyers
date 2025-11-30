@@ -2,13 +2,13 @@ import logging
 from collections import defaultdict
 
 import torch
-from transformers import (
-    AutoModelForSeq2SeqLM,
-    AutoTokenizer,
-)
 
 from bugulma_enjoyers.constants import NLLB_LANG_CODES
+from bugulma_enjoyers.datasets.collate import get_collate_fn
+from bugulma_enjoyers.datasets.detoxification_dataset import DetoxificationDataset
 from bugulma_enjoyers.detoxifiers.base import BaseDetoxifier, PipelineConfig
+from bugulma_enjoyers.load_model import load_model
+from bugulma_enjoyers.models import APIModel
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -25,12 +25,9 @@ class BacktranslationDetoxifier(BaseDetoxifier):
         self.device = torch.device(config.device)
 
         logger.info("Loading translator model: %s", config.translator_model_name)
-        self.translator_tokenizer = AutoTokenizer.from_pretrained(config.translator_model_name)
-        self.translator_model = AutoModelForSeq2SeqLM.from_pretrained(
-            config.translator_model_name,
-            torch_dtype=torch.float16 if config.device == "cuda" else torch.float32,
+        self.translator = load_model(
+            model_name=config.translator_model_name, pipeline_config=config,
         ).to(self.device)
-        self.translator_model.eval()
 
     def _get_translator_code(self, lang: str) -> str:
         code = NLLB_LANG_CODES.get(lang)
@@ -56,18 +53,7 @@ class BacktranslationDetoxifier(BaseDetoxifier):
             str: Переведенный текст
 
         """
-        src_code = self._get_translator_code(src_lang)
-        tgt_code = self._get_translator_code(tgt_lang)
-        logger.debug("Translating from %s to %s", src_code, tgt_code)
-
-        inputs = self.translator_tokenizer(text, return_tensors="pt").to(self.device)
-
-        translated_tokens = self.translator_model.generate(
-            **inputs,
-            forced_bos_token_id=self.translator_tokenizer.convert_tokens_to_ids(tgt_code),
-        )
-
-        return self.translator_tokenizer.decode(translated_tokens[0], skip_special_tokens=True)
+        return self._translate_batch([text], src_lang, tgt_lang)[0]
 
     def _translate_batch(
         self,
@@ -78,34 +64,23 @@ class BacktranslationDetoxifier(BaseDetoxifier):
         src_code = NLLB_LANG_CODES.get(src_lang, "eng_Latn")
         tgt_code = NLLB_LANG_CODES.get(tgt_lang, "eng_Latn")
 
-        self.translator_tokenizer.src_lang = src_code
-
-        results = []
-        for i in range(0, len(texts), self.config.batch_size):
-            batch_texts = texts[i : i + self.config.batch_size]
-
-            inputs = self.translator_tokenizer(
-                batch_texts,
-                return_tensors="pt",
-                max_length=self.config.max_length,
-                truncation=True,
-                padding=True,
-            ).to(self.device)
-
-            forced_bos_token_id = self.translator_tokenizer.convert_tokens_to_ids(tgt_code)
-
-            with torch.no_grad():
-                outputs = self.translator_model.generate(
-                    **inputs,
-                    forced_bos_token_id=forced_bos_token_id,
-                    max_length=self.config.max_length,
-                    num_beams=self.config.num_beams,
-                )
-
-            decoded = self.translator_tokenizer.batch_decode(outputs, skip_special_tokens=True)
-            results.extend(decoded)
-
-        return results
+        self.translator.tokenizer.src_lang = src_code
+        forced_bos_token_id = self.translator.tokenizer.convert_tokens_to_ids(tgt_code)
+        dataset = DetoxificationDataset(
+            texts=texts,
+            languages=[src_lang] * len(texts),
+            tokenizer=self.translator.tokenizer,
+            forced_bos_token_id=forced_bos_token_id,
+            use_prompts=isinstance(self.translator, APIModel),
+        )
+        dataloader = torch.utils.data.DataLoader(
+            dataset,
+            batch_size=self.config.batch_size,
+            shuffle=False,
+            collate_fn=get_collate_fn("translation"),
+        )
+        with torch.inference_mode():
+            return [text for batch in dataloader for text in self.translator.forward(batch)]
 
     def detoxify(self, text: str, language: str) -> str:
         """

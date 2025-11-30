@@ -5,7 +5,7 @@ import logging
 import torch
 from torch.utils.data import Dataset
 
-from bugulma_enjoyers.default_prompts import DETOX_PROMPTS
+from bugulma_enjoyers.prompts import SIMPLE_PROMPTS
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,9 @@ class DetoxificationDataset(Dataset):
         languages: list[str],
         tokenizer: torch.nn.Module,
         max_length: int = 256,
-        prompts: dict[str, str] | None = None,
+        task="detoxification",
+        use_prompts: bool = True,
+        forced_bos_token_id: int | None = None,
     ) -> None:
         """
         Initializes the DetoxificationDataset.
@@ -36,7 +38,9 @@ class DetoxificationDataset(Dataset):
         self.languages = languages
         self.tokenizer = tokenizer
         self.max_length = max_length
-        self.prompts = prompts or DETOX_PROMPTS
+        self.forced_bos_token_id = forced_bos_token_id
+        self.task = task
+        self.use_prompts = use_prompts
 
     def __len__(self) -> int:
         """The length of the dataset."""
@@ -56,9 +60,9 @@ class DetoxificationDataset(Dataset):
         text = self.texts[idx]
         lang = self.languages[idx]
 
-        prompt = self.prompts.get(lang, self.prompts["en"])
+        prompt = SIMPLE_PROMPTS[self.task][lang] if self.use_prompts else "{}"
 
-        input_text = f"{prompt} {text}"
+        input_text = prompt.format(text)
 
         # Токенизация
         encoding = self.tokenizer(
@@ -74,4 +78,6 @@ class DetoxificationDataset(Dataset):
             "attention_mask": encoding["attention_mask"].squeeze(0),
             "language": lang,
             "original_text": text,
+            "prompted_text": input_text,
+            "forced_bos_token_id": self.forced_bos_token_id,
         }
