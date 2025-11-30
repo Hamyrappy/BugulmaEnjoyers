@@ -19,4 +19,4 @@ class GoogleModel(APIModel, model_type="google"):
         self.model = genai.GenerativeModel(model_name, safety_settings=LOW_SAFETY)
 
     def invoke_model(self, input_: str) -> str:
-        return self.model.generate_text(prompt=input_).text
+        return self.model.generate_content(prompt=input_).text
