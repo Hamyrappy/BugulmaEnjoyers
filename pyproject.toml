@@ -1,0 +1,144 @@
+[project]
+name = "BugulmaEnjoyers"
+version = "0.1.0"
+description = "A tool for tatar language detoxification"
+authors = [
+    { name = "OstarkovSN" },
+    { name = "Hamyrappy" },
+    { name = "VitaliyEgorov431" },
+    { name = "ann-vasileeva" },
+]
+dependencies = [
+    "pytest>=9.0.1,<10",
+    "pytest-cov>=7.0.0,<8",
+    "huggingface-hub>=0.36.0,<0.37",
+    "transformers>=4.57.3,<5",
+    "langchain",
+    "google>=3.0.0,<4",
+    "datasets>=4.4.1,<5",
+    "ipykernel>=7.1.0,<8",
+    "pip>=25.3,<26",
+    "sentence-transformers>=5.1.2,<6",
+    "jupyter>=1.1.1,<2",
+    "ipywidgets>=8.1.8,<9",
+]
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["win-64", "linux-64", "osx-arm64"]
+
+[tool.pixi.dependencies]
+python = "==3.12"
+ruff = "*"
+
+[tool.pixi.target.linux-64.dependencies]
+cuda = "==12.4"
+
+[tool.pixi.target.win-64.dependencies]
+cuda = "==12.4"
+
+[tool.pixi.target.win-64.pypi-dependencies]
+torch = { version = "==2.6.0+cu124", index = "https://download.pytorch.org/whl/cu124" }
+
+[tool.pixi.target.linux-64.pypi-dependencies]
+torch = { version = "==2.6.0+cu124", index = "https://download.pytorch.org/whl/cu124" }
+
+[tool.pixi.target.osx-arm64.pypi-dependencies]
+torch = { version = "==2.6.0", index = "https://download.pytorch.org/whl/cpu" }
+
+[tool.pixi.tasks]
+lint = { cmd = "ruff check ." }
+lintfix = { cmd = "ruff check --fix ." }
+format = { cmd = "ruff format ." }
+test = { cmd = "pytest --cov=." }
+test-cov = { cmd = "pytest --cov=. --cov-report=xml --cov-report=html" }
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = [
+    "PLR2004", # Magic values in tests are fine
+    "S101",    # Use of assert in tests
+    "ANN",     # Type annotations in tests are optional
+    "ARG",     # Unused arguments in fixtures are fine
+    "S105",    # Hardcoded passwords in tests are fine
+]
+[tool.ruff]
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "site-packages",
+    ".pixi",
+    "venv",
+    ".neptune",
+]
+
+line-length = 100
+indent-width = 4
+
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = ["BLE", "D401", "FBT001", "TD003", "D212", "D203"]
+extend-safe-fixes = ["D400", "ANN2"]
+fixable = ["ALL"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+docstring-code-format = true
+docstring-code-line-length = "dynamic"
+
+[tool.coverage.run]
+source = ["."]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/.pixi/*",
+    "*/.venv/*",
+    "*/venv/*",
+    "*/__pycache__/*",
+    "*/site-packages/*",
+    "*/build/*",
+    "*/dist/*",
+    "*/instance/*",
+    "*/htmlcov/*",
+    "*/coverage/*",
+    "setup.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]
+show_missing = true
+skip_covered = false
+precision = 2
