@@ -20,6 +20,7 @@ from bugulma_enjoyers.setup_logging import setup_logging
 @click.option(
     "--detoxifier-2", help="Second detoxifier model name.", default="open_router/google/gemini-2.5-pro",
 )
+@click.option("--language","-l", help="Language of prompts: tt for tatar, ru for russian, en for english", default='tt')
 @click.command()
 def main(
     file: str = "dev_inputs.tsv",
@@ -30,6 +31,7 @@ def main(
     batch_size_2: int = 8,
     detoxifier_1: str = "hf/s-nlp/mt0-xl-detox-orpo",
     detoxifier_2: str = "open_router/google/gemini-2.5-pro",
+    language: str = 'tt',
 ) -> None:
     """Main entrypoint for BugulmaEnjoyers."""
     verbosity = verbose - quiet + 1
@@ -43,8 +45,8 @@ def main(
     )
     detox2 = StandaloneDetoxifier(config2)
     results = detox2.detoxify_batch(
-        detox.detoxify_batch(texts, ["tt"] * len(texts)),
-        ["tt"] * len(texts),
+        detox.detoxify_batch(texts, [language] * len(texts)),
+        [language] * len(texts),
     )
     write_output(results, texts, output)
 
