@@ -41,6 +41,7 @@ platforms = ["win-64", "linux-64", "osx-arm64"]
 [tool.pixi.dependencies]
 python = "==3.12"
 ruff = "*"
+openai = ">=2.20.0,<3"
 
 [tool.pixi.target.linux-64.dependencies]
 cuda = "==12.4"

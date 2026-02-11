@@ -18,7 +18,7 @@ from bugulma_enjoyers.setup_logging import setup_logging
     "--detoxifier-1", help="First detoxifier model name.", default="hf/s-nlp/mt0-xl-detox-orpo",
 )
 @click.option(
-    "--detoxifier-2", help="Second detoxifier model name.", default="google/models/gemini-2.5-pro",
+    "--detoxifier-2", help="Second detoxifier model name.", default="open_router/google/gemini-2.5-pro",
 )
 @click.command()
 def main(
@@ -29,7 +29,7 @@ def main(
     batch_size_1: int = 8,
     batch_size_2: int = 8,
     detoxifier_1: str = "hf/s-nlp/mt0-xl-detox-orpo",
-    detoxifier_2: str = "google/models/gemini-2.5-pro",
+    detoxifier_2: str = "open_router/google/gemini-2.5-pro",
 ) -> None:
     """Main entrypoint for BugulmaEnjoyers."""
     verbosity = verbose - quiet + 1
